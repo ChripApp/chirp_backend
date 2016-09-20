@@ -71,6 +71,22 @@ app.get('/store/enqueue', function (req, res) {
       'sitting': 2 + Math.floor(Math.random() * 10),
    });
 
+   var selector = {};
+   selector['stores.' + '57e0ee336ad25670ba65336c'] = true;
+   selector['phoneNumber'] = '949-331-8837';
+
+   //We track visited stores for the future
+   User.update(
+	   	{ phoneNumber: '949-331-8837' },
+	  	{
+	  		$set: selector
+	   	},
+	   	{ upsert : true },
+	   	function(err, user) {
+	    if (err) throw err;
+      
+	    console.log(user);
+   }); 
    newCustomer.save(function(err, customer){
      if (err){
         console.log(err);

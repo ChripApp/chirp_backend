@@ -7,7 +7,8 @@ var userSchema = mongoose.Schema({
   firstName:  {type: String, required: true},
   lastName:   {type: String, required: true},
   password:  {type: String, required: true},
-  username: {type: String, required: true, unique: true},
+  phoneNumber: {type: String},
+  stores: mongoose.Schema.Types.Mixed
 });
 
 userSchema.pre('save', function(next) {
