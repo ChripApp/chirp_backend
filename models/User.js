@@ -7,7 +7,8 @@ var userSchema = mongoose.Schema({
   firstName:  {type: String, required: true},
   lastName:   {type: String, required: true},
   password:  {type: String, required: true},
-  phoneNumber: {type: String},
+  phoneNumber: {type: String, required: true, index: { unique: true }},
+  username: {type: String},
   stores: mongoose.Schema.Types.Mixed
 });
 

@@ -8,6 +8,15 @@ var Store = require("./models/Store.js");
 var Customer = require("./models/Customer.js");
 var Schema = mongoose.Schema;
 
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({'extended':false}));
+
+
+
+var jwt = require('jsonwebtoken');
+
+
 
 mongoose.connect('mongodb://localhost:27017/test');
 var db = mongoose.connection;
@@ -17,12 +26,17 @@ db.once('open', function() {
  
 })
 
+
+
+
+
+
 // Create(Register) a Store
 // Input: Owner ID, Store Name, Store Description
 // Output: Success
 app.get('/store/create', function (req, res) {
    var newStore = new Store({
-      'owner':"57e0ea3f93df9c70a7a2299e",
+      'owner':"57e41abb2fb58e89482b3c29",
       'name': "Boiling Point",
       'description': "Stinky Tofu smells like shit, seriously",
    });
@@ -136,56 +150,85 @@ app.get('/store/getcustomer', function (req, res) {
 // Get My Stores
 // Input: Owner ID
 // Output: Store Objects
-app.get('/user/mystore', function (req, res) {
-   Store.find({ owner: '57e0ea3f93df9c70a7a2299e' }, function(err, stores) {
+app.post('/user/mystore', function (req, res) {
+   Store.find({ owner: req.body.owner }, function(err, stores) {
 	    if (err) throw err;
-
 	    console.log(stores);
+	    res.json({
+	    	success: true,
+	    	stores: stores
+	    });
 	});
 });
 
 // Sign Up
 // Input: Username, Password, First Name, Last Name, Phone Number
 // Output: Success
-app.get('/user/signup', function (req, res) {
+app.post('/user/signup', function (req, res) {
    var newUser = new User({
-      'username':"jun@usc.edu",
-      'password': "123",
-      'firstName': "Jun Suh",
-      'lastName': "Lee",
+      'phoneNumber': req.body.phoneNumber,
+      'password': req.body.password,
+      'firstName': req.body.firstName,
+      'lastName': req.body.lastName,
    });
+   res.set('Content-Type', 'application/json');
    newUser.save(function(err, user){
      if (err){
-        console.log(err);
+     	console.log(err);
+     	//Dupulicate PhoneNumber
+     	if(err.code == 11000){
+     		res.status(500).send({
+	         error: "existingPhoneNumber" 
+	     	});
+     	}
      }else{
-        console.log(user);  
+        res.json({
+        	success: true
+   		});
      }
    });
-
+   
 });
 
 // Sign In
 // Input: Username, Password
 // Output: Success, User Object
-app.get('/user/signin', function (req, res) {
-   User.findOne({ username: 'jun@usc.edu' }, function(err, user) {
+app.post('/user/signin', function (req, res) {
+   
+   User.findOne({ phoneNumber: req.body.phoneNumber }, function(err, user) {
 	    if (err) throw err;
-
-	    // test a matching password
-	    user.comparePassword('123', function(err, isMatch) {
+	    user.comparePassword(req.body.password, function(err, isMatch) {
 	        if (err) throw err;
-	        console.log('123:', isMatch); // -&gt; Password123: true
-	    });
-
-	    // test a failing password
-	    user.comparePassword('1414', function(err, isMatch) {
-	        if (err) throw err;
-	        console.log('1414:', isMatch); // -&gt; 123Password: false
+	        var token = jwt.sign(user, 'chirpBest');
+	        res.json({
+	        	success: true,
+	        	token: token,
+	        	user: user
+	        });
+	  //       jwt.verify(token, 'chirpBest', function(err, decoded) {
+			//   console.log(decoded._doc.phoneNumber);
+			// });
 	    });
 	});
 
 });
 
+
+app.post('/user/autoSignin', function (req, res) {
+   jwt.verify(req.body.token, 'chirpBest', function(err, decoded) {
+	    User.findOne({ phoneNumber: decoded._doc.phoneNumber }, function(err, user) {
+		    if (err) throw err;
+		    if(decoded._doc.password == user.password){
+		    	var token = jwt.sign(user, 'chirpBest');
+		        res.json({
+		        	success: true,
+		        	token: token,
+		        	user: user
+		        });
+		    }
+		});
+   });
+});
 
 
 
