@@ -5,6 +5,9 @@ var storeSchema = mongoose.Schema({
   queue: [{ 
   	time: Number, 
   	customer: String }],
+  doneQueue: [{ 
+  	time: Number, 
+  	customer: String }],
   name:   {type: String, required: true},
   description: String,
   cap: String

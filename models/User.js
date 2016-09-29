@@ -9,6 +9,11 @@ var userSchema = mongoose.Schema({
   password:  {type: String, required: true},
   phoneNumber: {type: String, required: true, index: { unique: true }},
   username: {type: String},
+  messageService: {
+  	store: String,
+  	seats: Number,
+  	status: String,
+  },
   stores: mongoose.Schema.Types.Mixed
 });
 

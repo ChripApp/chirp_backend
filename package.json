@@ -24,6 +24,7 @@
     "jsonwebtoken": "^7.1.9",
     "mongodb": "^2.2.10",
     "mongoose": "^4.6.0",
-    "react-native-lock": "^0.4.0"
+    "react-native-lock": "^0.4.0",
+    "twilio": "^2.11.0"
   }
 }
