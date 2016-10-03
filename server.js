@@ -74,8 +74,9 @@ app.post('/store/dequeue', function (req, res) {
         }
       }, function(err, store) {
       if (err){
-        console.log(err);
-        return;
+        res.status(500).send({
+            error: "dequeueError" 
+        });
       }
       client.sendMessage({
             to: req.body.phoneNumber,
@@ -86,16 +87,17 @@ app.post('/store/dequeue', function (req, res) {
 
       //New service
       MessageService.findOne({ store: store._id, phoneNumber: req.body.phoneNumber }, function(err, service){
-         console.log(service);
          if (err){
-          console.log(err);
+            res.status(500).send({
+               error: "minor" 
+            });
          }else if(service == null){
-            console.log("here");
             MessageService.count({ phoneNumber: req.body.phoneNumber }, function(err, count) {
               if(err){
-                console.log(err);
+                res.status(500).send({
+                   error: "registerUserError" 
+                });
               }else{
-                console.log("yo" + count);
                 var newId = 'A' + count;
                 var newService = new MessageService({
                   'phoneNumber': req.body.phoneNumber,
@@ -104,14 +106,15 @@ app.post('/store/dequeue', function (req, res) {
                 });
                 newService.save(function(err, service){
                  if (err){
-                  console.log(err);
+                    res.status(500).send({
+                       error: "registerUserError" 
+                    });
                  }else{
                       client.sendMessage({
                           to: req.body.phoneNumber, 
                           from: '+19493834024',
                           body: 'Hey there! Thank you for visiting ' + store.name + '. Your ID is ' + service.id + '. If you want to reserve your seats remotely, please send ' + service.id + ' to me.',
-                      }, function(err, responseData) { 
-                      });
+                      }, function(err, responseData) {});
                  }
                });
               }
@@ -121,8 +124,9 @@ app.post('/store/dequeue', function (req, res) {
 
       Store.findOne({ _id: req.body.store }, function(err, store) {
           if (err){
-            console.log(err);
-            return ;
+            res.status(500).send({
+               error: "dequeueUpdateStoreError" 
+            });
           }
           res.json({
               success: true,
@@ -148,9 +152,10 @@ app.post('/store/enqueue', function (req, res) {
     
    newCustomer.save(function(err, customer){
      if (err){
-        console.log(err);
+        res.status(500).send({
+          error: "enqueueError" 
+        });
      }else{
-      console.log(customer);
        Store.findOneAndUpdate(
         { _id: req.body.store },
         {
@@ -162,23 +167,26 @@ app.post('/store/enqueue', function (req, res) {
           }
         }, function(err, store) {
         if (err){
-          return;
+          res.status(500).send({
+             error: "enqueueError" 
+          });
         }
         client.sendMessage({
               to: req.body.phoneNumber, 
               from: '+19493834024',
               body: 'Confirmation: [' + store.name + ": " + req.body.seats + " Seats]. There are " + store.queue.length + " groups remaining",
-          }, function(err, responseData) { //this function is executed when a response is received from Twilio   
-        });
+          }, function(err, responseData) {});
         Store.findOne({ _id: req.body.store }, function(err, store) {
             if (err){
-              console.log(err);
-              return ;
-            } 
-            res.json({
-                success: true,
-                store: store
-            });
+              res.status(500).send({
+                 error: "enqueueUpdateStoreError" 
+              });
+            }else{ 
+              res.json({
+                  success: true,
+                  store: store
+              });
+            }
         });
     }); 
      }
@@ -192,15 +200,19 @@ app.post('/store/enqueue', function (req, res) {
 app.post('/store/getstore', function (req, res) {
    Store.findOne({ _id: req.body.store }, function(err, store) {
 	    if (err){
-        console.log(err);
-        return ;
-      }
-      res.json({
+        res.status(500).send({
+           error: "getStoreError" 
+        });
+      }else{
+        res.json({
           success: true,
           store: store
-      });
+        });
+      }
+      
 	});
 });
+
 
 // Get a Customer
 // Input: Customer ID
@@ -208,6 +220,9 @@ app.post('/store/getstore', function (req, res) {
 app.post('/store/getcustomer', function (req, res) {
    Customer.findOne({ _id: req.body.customer }, function(err, customer) {
 	    if (err){
+        res.status(500).send({
+           error: "getCustomerError" 
+        });
       }else{
         res.json({
           success: true,
@@ -217,19 +232,26 @@ app.post('/store/getcustomer', function (req, res) {
 	});
 });
 
+
 // Get My Stores
 // Input: Owner ID
 // Output: Store Objects
 app.post('/user/mystore', function (req, res) {
    Store.find({ owner: req.body.owner }, function(err, stores) {
-	    if (err) throw err;
-	    console.log(stores);
-	    res.json({
-	    	success: true,
-	    	stores: stores
-	    });
+	    if (err) {
+        res.status(500).send({
+           error: "getMyStoreError" 
+        });
+      }else{
+        res.json({
+          success: true,
+          stores: stores
+        });
+      }
+	    
 	});
 });
+
 
 // Sign Up
 // Input: Username, Password, First Name, Last Name, Phone Number
@@ -244,7 +266,9 @@ app.post('/user/signup', function (req, res) {
    newUser.save(
    function(err, user) {
      if (err){
-        console.log(err);
+        res.status(500).send({
+           error: "signupError" 
+        });
      }else{
         var newStore = new Store({
             'owner': user._id,
@@ -253,7 +277,9 @@ app.post('/user/signup', function (req, res) {
          newStore.save(
            function(err, store) {
            if (err){
-              console.log(err);
+              res.status(500).send({
+                 error: "signupStoreError" 
+              });
            }else{
               var token = jwt.sign(user, 'chirpBest');
               user.password = null;
@@ -267,11 +293,11 @@ app.post('/user/signup', function (req, res) {
               });
            }
          });
-        
      }
    });
    
 });
+
 
 // Sign In
 // Input: Username, Password
@@ -280,30 +306,37 @@ app.post('/user/signin', function (req, res) {
      User.findOne({ phoneNumber: req.body.phoneNumber }, function(err, user){
 	    if (err || !user){
         res.status(500).send({
+           success: false,
            error: "phoneNumberNotExist" 
         });
       }else{
         user.comparePassword(req.body.password, function(err, isMatch) {
-            if (err){
-                console.log(err);
-                return;
-            }
-            Store.findOne({ owner: user._id }, function(err, store) {
-              if (err){
-                console.log(err);
-              }else{
-                  var token = jwt.sign(user, 'chirpBest');
-                  user.password = null;
-                  user._id = null;
-                  user.messageService = null;
-                  res.json({
-                    success: true,
-                    token: token,
-                    user: user,
-                    store: store
+            if (err || !isMatch){
+                res.status(500).send({
+                   success: false,
+                   error: "passwordNotMatch" 
+                });
+            }else{
+              Store.findOne({ owner: user._id }, function(err, store) {
+                if (err){
+                  res.status(500).send({
+                     success: false,
+                     error: "storeNotFound" 
                   });
-              }
-            });
+                }else{
+                    var token = jwt.sign(user, 'chirpBest');
+                    user.password = null;
+                    user._id = null;
+                    user.messageService = null;
+                    res.json({
+                      success: true,
+                      token: token,
+                      user: user,
+                      store: store
+                    });
+                }
+              });
+            }
         });
       }
     });
@@ -311,16 +344,23 @@ app.post('/user/signin', function (req, res) {
 });
 
 
+// Auto Sign In
+// Input: Token
+// Output: Success, User Object
 app.post('/user/autoSignin', function (req, res) {
    jwt.verify(req.body.token, 'chirpBest', function(err, decoded) {
 	    User.findOne({ phoneNumber: decoded._doc.phoneNumber }, function(err, user) {
         if (err){
-            console.log(err);
+            res.status(500).send({
+               error: "autoLoginPhoneNumberError"
+            });
             return;
         }
 		    Store.findOne({ owner: user._id }, function(err, store) {
           if (err){
-            console.log(err);
+            res.status(500).send({
+               error: "autoLoginStoreError"
+            });
           }else{
               if(decoded._doc.password == user.password){
               var token = jwt.sign(user, 'chirpBest');
@@ -339,6 +379,9 @@ app.post('/user/autoSignin', function (req, res) {
 		  });
    });
 });
+
+
+//Just temporary end point for testing
 app.get('/message/newService', function (req, res) {
   // client.sendMessage({
   //     to: '+19497691177', 
@@ -363,15 +406,29 @@ app.get('/message/newService', function (req, res) {
      }
    });
 });
+
+
+// Handling SMS
+// Input: SMS Object
+// Output: Success
 app.post('/message/mailbox', function (req, res) {
    //console.log(req.body);
    var content = req.body.Body;
    var phoneNumber = req.body.From;
    if(!isNaN(content)){
       User.findOne({ phoneNumber: phoneNumber }, function(err, user) {
-        if (err) throw err;
+
+        if (err){
+
+        }
+
         var selector = {};
         Store.findOne({ _id: user.messageService.store }, function(err, store) {
+
+              if(err){
+
+              }
+
               selector['messageService'] = {
                 store: store._id,
                 seats: content,
@@ -383,12 +440,16 @@ app.post('/message/mailbox', function (req, res) {
                   $set: selector
                 },
                 function(err, user) {
+
+                if(err){
+
+                }
+
                 client.sendMessage({
                       to: phoneNumber, 
                       from: '+19493834024',
                       body: '[' + store.name + '][' + content + ' Seats]. To confirm this seats, please send Y',
-                  }, function(err, responseData) { //this function is executed when a response is received from Twilio   
-                });
+                  }, function(err, responseData) {});
              }); 
         });
       });
@@ -397,7 +458,10 @@ app.post('/message/mailbox', function (req, res) {
         switch(content){
           case 'Y':
           User.findOne({ phoneNumber: phoneNumber }, function(err, user) {
-            if (err) throw err;
+            if (err) {
+
+            }
+
             if(user.messageService.status == 'ready'){
                 var newCustomer = new Customer({
                     'store': user.messageService.store,
@@ -406,7 +470,8 @@ app.post('/message/mailbox', function (req, res) {
                  }); 
                  newCustomer.save(function(err, customer){
                    if (err){
-                      console.log(err);
+                      
+
                    }else{
                      Store.findOneAndUpdate(
                       { _id: user.messageService.store },
@@ -419,18 +484,14 @@ app.post('/message/mailbox', function (req, res) {
                         }
                       }, function(err, store) {
                       if (err){
-                        console.log(err);
-                        return;
+                        
                       }
 
                       client.sendMessage({
                             to: phoneNumber, 
                             from: '+19493834024',
                             body: 'Confirmation: [' + store.name + ": " + user.messageService.seats + " Seats]. There are " + store.queue.length + " groups remaining",
-                        }, function(err, responseData) { 
-                            if (!err) { 
-                            }
-                      });
+                        }, function(err, responseData) {});
                       
                   }); 
                    }
@@ -441,6 +502,10 @@ app.post('/message/mailbox', function (req, res) {
           default: 
           var selector = {};
           MessageService.findOne({ phoneNumber: phoneNumber, id: content }, function(err, service) {
+              if(err){
+
+              }
+
               Store.findOne({ _id: service.store }, function(err, store) {
                   selector['messageService'] = {
                     store: store._id,
@@ -452,16 +517,17 @@ app.post('/message/mailbox', function (req, res) {
                       $set: selector
                     },
                     function(err, user) {
-                    console.log(err);
+
+                    if(err){
+
+                    }
+
                     var remaining = store.queue ? store.queue.length : 0;
                     client.sendMessage({
                           to: phoneNumber, 
                           from: '+19493834024',
                           body: 'Welcome back to ' + store.name + '! We have now ' + remaining + ' groups waiting. How many seats you want?',
-                      }, function(err, responseData) { //this function is executed when a response is received from Twilio
-                          if (!err) { // "err" is an error received during the request, if any
-                          }
-                    });
+                      }, function(err, responseData) {});
 
                  }); 
               });
