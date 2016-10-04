@@ -26,13 +26,8 @@ var db = mongoose.connection;
 db.once('open', function() {
   // we're connected!
   console.log("Mongo Connected");
- 
+
 })
-
-
-
-
-
 
 // Create(Register) a Store
 // Input: Owner ID, Store Name, Store Description
@@ -48,7 +43,7 @@ app.get('/store/create', function (req, res) {
      if (err){
         console.log(err);
      }else{
-        console.log(user);  
+        console.log(user);
      }
    });
 
@@ -75,27 +70,27 @@ app.post('/store/dequeue', function (req, res) {
       }, function(err, store) {
       if (err){
         res.status(500).send({
-            error: "dequeueError" 
+            error: "dequeueError"
         });
       }
       client.sendMessage({
             to: req.body.phoneNumber,
             from: '+19493834024',
             body: 'from ' + store.name + ': Your turn',
-        }, function(err, responseData) { 
+        }, function(err, responseData) {
       });
 
       //New service
       MessageService.findOne({ store: store._id, phoneNumber: req.body.phoneNumber }, function(err, service){
          if (err){
             res.status(500).send({
-               error: "minor" 
+               error: "minor"
             });
          }else if(service == null){
             MessageService.count({ phoneNumber: req.body.phoneNumber }, function(err, count) {
               if(err){
                 res.status(500).send({
-                   error: "registerUserError" 
+                   error: "registerUserError"
                 });
               }else{
                 var newId = 'A' + count;
@@ -107,11 +102,11 @@ app.post('/store/dequeue', function (req, res) {
                 newService.save(function(err, service){
                  if (err){
                     res.status(500).send({
-                       error: "registerUserError" 
+                       error: "registerUserError"
                     });
                  }else{
                       client.sendMessage({
-                          to: req.body.phoneNumber, 
+                          to: req.body.phoneNumber,
                           from: '+19493834024',
                           body: 'Hey there! Thank you for visiting ' + store.name + '. Your ID is ' + service.id + '. If you want to reserve your seats remotely, please send ' + service.id + ' to me.',
                       }, function(err, responseData) {});
@@ -125,7 +120,7 @@ app.post('/store/dequeue', function (req, res) {
       Store.findOne({ _id: req.body.store }, function(err, store) {
           if (err){
             res.status(500).send({
-               error: "dequeueUpdateStoreError" 
+               error: "dequeueUpdateStoreError"
             });
           }
           res.json({
@@ -133,7 +128,7 @@ app.post('/store/dequeue', function (req, res) {
               store: store
           });
       });
-  });    
+  });
 
 });
 
@@ -149,11 +144,11 @@ app.post('/store/enqueue', function (req, res) {
       'seats': req.body.seats,
    });
 
-    
+
    newCustomer.save(function(err, customer){
      if (err){
         res.status(500).send({
-          error: "enqueueError" 
+          error: "enqueueError"
         });
      }else{
        Store.findOneAndUpdate(
@@ -168,27 +163,27 @@ app.post('/store/enqueue', function (req, res) {
         }, function(err, store) {
         if (err){
           res.status(500).send({
-             error: "enqueueError" 
+             error: "enqueueError"
           });
         }
         client.sendMessage({
-              to: req.body.phoneNumber, 
+              to: req.body.phoneNumber,
               from: '+19493834024',
               body: 'Confirmation: [' + store.name + ": " + req.body.seats + " Seats]. There are " + store.queue.length + " groups remaining",
           }, function(err, responseData) {});
         Store.findOne({ _id: req.body.store }, function(err, store) {
             if (err){
               res.status(500).send({
-                 error: "enqueueUpdateStoreError" 
+                 error: "enqueueUpdateStoreError"
               });
-            }else{ 
+            }else{
               res.json({
                   success: true,
                   store: store
               });
             }
         });
-    }); 
+    });
      }
    });
 });
@@ -201,7 +196,7 @@ app.post('/store/getstore', function (req, res) {
    Store.findOne({ _id: req.body.store }, function(err, store) {
 	    if (err){
         res.status(500).send({
-           error: "getStoreError" 
+           error: "getStoreError"
         });
       }else{
         res.json({
@@ -209,7 +204,7 @@ app.post('/store/getstore', function (req, res) {
           store: store
         });
       }
-      
+
 	});
 });
 
@@ -221,7 +216,7 @@ app.post('/store/getcustomer', function (req, res) {
    Customer.findOne({ _id: req.body.customer }, function(err, customer) {
 	    if (err){
         res.status(500).send({
-           error: "getCustomerError" 
+           error: "getCustomerError"
         });
       }else{
         res.json({
@@ -240,7 +235,7 @@ app.post('/user/mystore', function (req, res) {
    Store.find({ owner: req.body.owner }, function(err, stores) {
 	    if (err) {
         res.status(500).send({
-           error: "getMyStoreError" 
+           error: "getMyStoreError"
         });
       }else{
         res.json({
@@ -248,7 +243,7 @@ app.post('/user/mystore', function (req, res) {
           stores: stores
         });
       }
-	    
+
 	});
 });
 
@@ -267,7 +262,7 @@ app.post('/user/signup', function (req, res) {
    function(err, user) {
      if (err){
         res.status(500).send({
-           error: "signupError" 
+           error: "signupError"
         });
      }else{
         var newStore = new Store({
@@ -278,7 +273,7 @@ app.post('/user/signup', function (req, res) {
            function(err, store) {
            if (err){
               res.status(500).send({
-                 error: "signupStoreError" 
+                 error: "signupStoreError"
               });
            }else{
               var token = jwt.sign(user, 'chirpBest');
@@ -295,7 +290,7 @@ app.post('/user/signup', function (req, res) {
          });
      }
    });
-   
+
 });
 
 
@@ -307,21 +302,23 @@ app.post('/user/signin', function (req, res) {
 	    if (err || !user){
         res.status(500).send({
            success: false,
-           error: "phoneNumberNotExist" 
-        });
+           error: "phoneNumberNotExist"
+        })
       }else{
         user.comparePassword(req.body.password, function(err, isMatch) {
             if (err || !isMatch){
                 res.status(500).send({
                    success: false,
-                   error: "passwordNotMatch" 
+                   error: "passwordNotMatch"
                 });
+
+
             }else{
               Store.findOne({ owner: user._id }, function(err, store) {
                 if (err){
                   res.status(500).send({
                      success: false,
-                     error: "storeNotFound" 
+                     error: "storeNotFound"
                   });
                 }else{
                     var token = jwt.sign(user, 'chirpBest');
@@ -384,10 +381,10 @@ app.post('/user/autoSignin', function (req, res) {
 //Just temporary end point for testing
 app.get('/message/newService', function (req, res) {
   // client.sendMessage({
-  //     to: '+19497691177', 
+  //     to: '+19497691177',
   //     from: '+19493834024',
   //     body: 'Hey there! Thank you for visiting Boiling Point. Your ID is A1. If you want to reserve your seats remotely, please send 123 to me.',
-  // }, function(err, responseData) { //this function is executed when a response is received from Twilio   
+  // }, function(err, responseData) { //this function is executed when a response is received from Twilio
   //     res.json(err);
   // });
     var newService = new MessageService({
@@ -446,11 +443,11 @@ app.post('/message/mailbox', function (req, res) {
                 }
 
                 client.sendMessage({
-                      to: phoneNumber, 
+                      to: phoneNumber,
                       from: '+19493834024',
                       body: '[' + store.name + '][' + content + ' Seats]. To confirm this seats, please send Y',
                   }, function(err, responseData) {});
-             }); 
+             });
         });
       });
    }else{
@@ -467,10 +464,10 @@ app.post('/message/mailbox', function (req, res) {
                     'store': user.messageService.store,
                     'phoneNumber': phoneNumber,
                     'seats': user.messageService.seats,
-                 }); 
+                 });
                  newCustomer.save(function(err, customer){
                    if (err){
-                      
+
 
                    }else{
                      Store.findOneAndUpdate(
@@ -484,22 +481,22 @@ app.post('/message/mailbox', function (req, res) {
                         }
                       }, function(err, store) {
                       if (err){
-                        
+
                       }
 
                       client.sendMessage({
-                            to: phoneNumber, 
+                            to: phoneNumber,
                             from: '+19493834024',
                             body: 'Confirmation: [' + store.name + ": " + user.messageService.seats + " Seats]. There are " + store.queue.length + " groups remaining",
                         }, function(err, responseData) {});
-                      
-                  }); 
+
+                  });
                    }
                  });
             }
           });
           break;
-          default: 
+          default:
           var selector = {};
           MessageService.findOne({ phoneNumber: phoneNumber, id: content }, function(err, service) {
               if(err){
@@ -524,17 +521,17 @@ app.post('/message/mailbox', function (req, res) {
 
                     var remaining = store.queue ? store.queue.length : 0;
                     client.sendMessage({
-                          to: phoneNumber, 
+                          to: phoneNumber,
                           from: '+19493834024',
                           body: 'Welcome back to ' + store.name + '! We have now ' + remaining + ' groups waiting. How many seats you want?',
                       }, function(err, responseData) {});
 
-                 }); 
+                 });
               });
-              
+
           });
         }
-      
+
    }
 });
 
