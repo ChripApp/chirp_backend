@@ -66,6 +66,9 @@ app.post('/store/dequeue', function (req, res) {
             $each: [ {time: Date.now(), customer: req.body.customer } ],
             $sort: { time: 1 }
           }
+        },
+        $inc: {
+          waiting: -parseInt(req.body.seats),
         }
       }, function(err, store) {
       if (err){
@@ -159,6 +162,9 @@ app.post('/store/enqueue', function (req, res) {
               $each: [ {time: Date.now(), customer: customer._id } ],
               $sort: { time: 1 }
             }
+          },
+          $inc: {
+            waiting: parseInt(req.body.seats),
           }
         }, function(err, store) {
         if (err){
@@ -252,7 +258,7 @@ app.post('/user/mystore', function (req, res) {
 // Input: Username, Password, First Name, Last Name, Phone Number
 // Output: Success
 app.post('/user/signup', function (req, res) {
-    var newUser = new User({
+   var newUser = new User({
       phoneNumber: req.body.phoneNumber,
       password: req.body.password,
       firstName: req.body.firstName,
@@ -267,7 +273,6 @@ app.post('/user/signup', function (req, res) {
      }else{
         var newStore = new Store({
             'owner': user._id,
-            'name': req.body.storeName
          });
          newStore.save(
            function(err, store) {
@@ -478,6 +483,9 @@ app.post('/message/mailbox', function (req, res) {
                             $each: [ {time: Date.now(), customer: customer._id } ],
                             $sort: { time: 1 }
                           }
+                        },
+                        $inc: {
+                          waiting: parseInt(req.body.seats),
                         }
                       }, function(err, store) {
                       if (err){

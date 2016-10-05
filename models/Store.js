@@ -10,7 +10,8 @@ var storeSchema = mongoose.Schema({
   	customer: String }],
   name:   {type: String, required: true},
   description: String,
-  cap: String
+  cap: String,
+  waiting: Number,
 });
 
 var Store = mongoose.model('Store', storeSchema);
