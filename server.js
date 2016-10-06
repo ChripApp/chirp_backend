@@ -49,6 +49,31 @@ app.get('/store/create', function (req, res) {
 
 });
 
+// Update a Store
+// Input: Store ID, Store Name, Est Min
+// Output: Success
+app.post('/store/update', function (req, res) {
+
+   Store.findOneAndUpdate(
+      { _id: req.body.store },
+      {
+        $set: {
+          name: req.body.name,
+          estmin: parseInt(req.body.estmin)
+        },
+      }, function(err, store) {
+        console.log(err);
+        console.log(store);
+        store.name = req.body.name;
+        store.estmin = parseInt(req.body.estmin);
+        res.json({
+            success: true,
+            store: store
+        });
+    });
+
+});
+
 // Remove a Customer from a Store's Queue::
 // Input: Store ID, Customer ID
 // Output: Success

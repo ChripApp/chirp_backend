@@ -12,6 +12,7 @@ var storeSchema = mongoose.Schema({
   description: String,
   cap: String,
   waiting: Number,
+  estmin: Number,
 });
 
 var Store = mongoose.model('Store', storeSchema);
