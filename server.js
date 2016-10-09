@@ -78,6 +78,7 @@ app.post('/store/update', function (req, res) {
 // Input: Store ID, Customer ID
 // Output: Success
 app.post('/store/dequeue', function (req, res) {
+  console.log(req.body);
 	Store.findOneAndUpdate(
       { _id: req.body.store },
       {
@@ -100,6 +101,7 @@ app.post('/store/dequeue', function (req, res) {
         res.status(500).send({
             error: "dequeueError"
         });
+        console.log(err);
       }
       client.sendMessage({
             to: req.body.phoneNumber,

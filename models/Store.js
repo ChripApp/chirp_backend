@@ -8,7 +8,7 @@ var storeSchema = mongoose.Schema({
   doneQueue: [{ 
   	time: Number, 
   	customer: String }],
-  name:   {type: String, required: true},
+  name:   {type: String},
   description: String,
   cap: String,
   waiting: Number,
