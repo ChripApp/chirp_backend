@@ -59,7 +59,7 @@ app.post('/store/update', function (req, res) {
       {
         $set: {
           name: req.body.name,
-          estmin: parseInt(req.body.estmin)
+          estmin: req.body.estmin == 0 ? null : parseInt(req.body.estmin)
         },
       }, function(err, store) {
         console.log(err);
@@ -162,6 +162,37 @@ app.post('/store/dequeue', function (req, res) {
 
 });
 
+// Reset queues
+// Input: Store ID
+// Output: Success, Store Object
+app.post('/store/reset', function (req, res) {
+
+  Store.findOneAndUpdate(
+    { _id: req.body.store },
+    {
+      $set: {
+        queue: [],
+        doneQueue: []
+      },
+      $inc: {
+        waiting: 0,
+      }
+    }, function(err, store) {
+      if (err){
+        res.status(500).send({
+           error: "resetError"
+        });
+      }else{
+        store.queue = [];
+        store.doneQueue = [];
+        res.json({
+            success: true,
+            store: store
+        });
+      }
+    });
+
+});
 
 // Put Customer to a Store's Queue::
 // Input: Store ID, Customer Phone Number, Sitting Info
@@ -325,6 +356,32 @@ app.post('/user/signup', function (req, res) {
 
 });
 
+// Verify
+// Input: Username, Password
+// Output: Success
+app.post('/user/verify', function (req, res) {
+  User.findOne({ phoneNumber: req.body.phoneNumber }, function(err, user){
+      if (err || !user){
+        res.status(500).send({
+           success: false,
+           error: "phoneNumberNotExist"
+        })
+      }else{
+        user.comparePassword(req.body.password, function(err, isMatch) {
+            if (err || !isMatch){
+                res.status(500).send({
+                   success: false,
+                   error: "passwordNotMatch"
+                });
+            }else{
+              res.json({
+                success: true,
+              });
+            }
+        });
+      }
+    });
+});
 
 // Sign In
 // Input: Username, Password
