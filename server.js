@@ -441,8 +441,8 @@ app.post('/user/autoSignin', function (req, res) {
                error: "autoLoginPhoneNumberError"
             });
             return;
-        }
-		    Store.findOne({ owner: user._id }, function(err, store) {
+        }else{
+          Store.findOne({ owner: user._id }, function(err, store) {
           if (err){
             res.status(500).send({
                error: "autoLoginStoreError"
@@ -462,6 +462,7 @@ app.post('/user/autoSignin', function (req, res) {
             }
           }
         });
+        }
 		  });
    });
 });
